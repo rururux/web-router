@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook } from "vitest-browser-react";
 import { memoryLocation } from "wouter/memory-location";
 
 it("returns a hook that is compatible with location spec", () => {
@@ -69,7 +69,7 @@ it('should return search hook that has initial query "" by default', () => {
 it("should return standalone `navigate` method", () => {
   const { hook, navigate } = memoryLocation();
 
-  const { result, unmount } = renderHook(() => hook());
+  const { result, act, unmount } = renderHook(() => hook());
 
   act(() => navigate("/standalone"));
 
@@ -81,7 +81,7 @@ it("should return standalone `navigate` method", () => {
 it("should return location hook that supports navigation", () => {
   const { hook } = memoryLocation();
 
-  const { result, unmount } = renderHook(() => hook());
+  const { result, act, unmount } = renderHook(() => hook());
 
   act(() => result.current[1]("/location"));
 
@@ -97,7 +97,7 @@ it("should record all history when `record` option is provided", () => {
     navigate: standalone,
   } = memoryLocation({ record: true, path: "/test" });
 
-  const { result, unmount } = renderHook(() => hook());
+  const { result, act, unmount } = renderHook(() => hook());
 
   act(() => standalone("/standalone"));
   act(() => result.current[1]("/location"));
@@ -145,7 +145,7 @@ it("should have reset method that reset hook location", () => {
     record: true,
     path: "/test",
   });
-  const { result, unmount } = renderHook(() => hook());
+  const { result, act, unmount } = renderHook(() => hook());
 
   act(() => navigate("/location"));
 

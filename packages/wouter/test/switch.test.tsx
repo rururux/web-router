@@ -1,13 +1,8 @@
-import { it, expect, afterEach } from "vitest";
-
+import type { PropsWithChildren, ReactElement } from "react";
+import { it, expect } from "vitest";
+import { render } from "vitest-browser-react";
 import { Router, Route, Switch } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
-
-import { render, act, cleanup } from "@testing-library/react";
-import { PropsWithChildren, ReactElement } from "react";
-
-// Clean up after each test to avoid DOM pollution
-afterEach(cleanup);
 
 const raf = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
@@ -123,10 +118,10 @@ it("always ensures the consistency of inner routes rendering", async () => {
     </Switch>
   );
 
-  await act(async () => {
+  // await act(async () => {
     await raf();
     history.pushState(null, "", "/");
-  });
+  // });
 
   unmount();
 });

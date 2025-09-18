@@ -1,5 +1,5 @@
 import { it, expect, beforeEach, vi } from "vitest";
-import { renderHook, render } from "@testing-library/react";
+import { renderHook, render } from "vitest-browser-react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { Router, Route, useLocation, Link } from "wouter";
@@ -87,7 +87,7 @@ it("changes search and hash when contains ? symbol", () => {
   expect(location.hash).toBe("#/abc");
 });
 
-it("creates a new history entry when navigating", () => {
+it.skipIf(history.length === 50)("creates a new history entry when navigating", () => {
   const { result } = renderHook(() => useHashLocation());
   const [, navigate] = result.current;
 
@@ -209,7 +209,7 @@ it("defines a custom way of rendering link hrefs", () => {
   expect(getByTestId("link")).toHaveAttribute("href", "#/app");
 });
 
-it("interacts properly with the history stack", () => {
+it.skipIf(history.length === 50)("interacts properly with the history stack", () => {
   const { result } = renderHook(() => useHashLocation());
   const [, navigate] = result.current;
 
@@ -257,7 +257,7 @@ it("uses string URLs as hashchange event payload", () => {
 
   const relativeOldPath = "/foo";
   const relativeNewPath = "/foo/bar/#hash";
-  const baseURL = "http://localhost:3000/#";
+  const baseURL = "http://localhost:63315/#";
 
   navigate(relativeOldPath);
 

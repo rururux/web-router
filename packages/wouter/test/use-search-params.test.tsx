@@ -1,7 +1,8 @@
-import { renderHook, act } from "@testing-library/react";
+import type { PropsWithChildren } from "react"
+import { it, expect, beforeEach } from "vitest";
+import { renderHook } from "vitest-browser-react";
 import { useSearchParams, Router } from "wouter";
 import { navigate } from "wouter/use-browser-location";
-import { it, expect, beforeEach } from "vitest";
 
 beforeEach(() => history.replaceState(null, "", "/"));
 
@@ -14,7 +15,7 @@ it("can return browser search params", () => {
 
 it("can change browser search params", () => {
   history.replaceState(null, "", "/users?active=true");
-  const { result } = renderHook(() => useSearchParams());
+  const { result, act } = renderHook(() => useSearchParams());
 
   expect(result.current[0].get("active")).toBe("true");
 
@@ -32,7 +33,7 @@ it("can be customized in the Router", () => {
   const customSearchHook = ({ customOption = "unused" }) => "none";
 
   const { result } = renderHook(() => useSearchParams(), {
-    wrapper: (props) => {
+    wrapper: (props: PropsWithChildren) => {
       return <Router searchHook={customSearchHook}>{props.children}</Router>;
     },
   });
@@ -41,7 +42,7 @@ it("can be customized in the Router", () => {
 });
 
 it("unescapes search string", () => {
-  const { result: searchResult } = renderHook(() => useSearchParams());
+  const { result: searchResult, act } = renderHook(() => useSearchParams());
 
   expect(Array.from(searchResult.current[0].keys()).length).toBe(0);
 

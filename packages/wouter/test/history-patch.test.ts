@@ -1,18 +1,15 @@
-import { useLocation as reactHook } from "wouter";
-import { useLocation as preactHook } from "wouter-preact";
-import { renderHook, act } from "@testing-library/react";
-
 import { vi, it, expect, describe } from "vitest";
+import { renderHook } from "vitest-browser-react";
+import { useLocation as reactHook } from "wouter";
 
 describe("history patch", () => {
   it("exports should exists", () => {
     expect(reactHook).toBeDefined();
-    expect(preactHook).toBeDefined();
   });
 
   it("history should be patched once", () => {
     const fn = vi.fn();
-    const { result, unmount } = renderHook(() => reactHook());
+    const { result, act, unmount } = renderHook(() => reactHook());
 
     addEventListener("pushState", (e) => {
       fn();

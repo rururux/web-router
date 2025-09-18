@@ -1,8 +1,9 @@
-import { renderHook, act } from "@testing-library/react";
-import { useSearch, Router } from "wouter";
-import { navigate } from "wouter/use-browser-location";
-import { memoryLocation } from "wouter/memory-location";
+import type { PropsWithChildren } from "react"
 import { it, expect, beforeEach } from "vitest";
+import { renderHook } from "vitest-browser-react";
+import { useSearch, Router } from "wouter";
+import { memoryLocation } from "wouter/memory-location";
+import { navigate } from "wouter/use-browser-location";
 
 beforeEach(() => history.replaceState(null, "", "/"));
 
@@ -17,7 +18,7 @@ it("can be customized in the Router", () => {
   const customSearchHook = ({ customOption = "unused" }) => "none";
 
   const { result } = renderHook(() => useSearch(), {
-    wrapper: (props) => {
+    wrapper: (props: PropsWithChildren) => {
       return <Router searchHook={customSearchHook}>{props.children}</Router>;
     },
   });
@@ -29,7 +30,7 @@ it("can be customized with memoryLocation", () => {
   const { searchHook } = memoryLocation({ path: "/foo?key=value" });
 
   const { result } = renderHook(() => useSearch(), {
-    wrapper: (props) => {
+    wrapper: (props: PropsWithChildren) => {
       return <Router searchHook={searchHook}>{props.children}</Router>;
     },
   });
@@ -44,7 +45,7 @@ it("can be customized with memoryLocation using search path parameter", () => {
   });
 
   const { result } = renderHook(() => useSearch(), {
-    wrapper: (props) => {
+    wrapper: (props: PropsWithChildren) => {
       return <Router searchHook={searchHook}>{props.children}</Router>;
     },
   });
@@ -53,7 +54,7 @@ it("can be customized with memoryLocation using search path parameter", () => {
 });
 
 it("unescapes search string", () => {
-  const { result: searchResult } = renderHook(() => useSearch());
+  const { result: searchResult, act } = renderHook(() => useSearch());
 
   expect(searchResult.current).toBe("");
 

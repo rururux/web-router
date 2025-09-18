@@ -1,14 +1,11 @@
-import { type MouseEventHandler } from "react";
-import { it, expect, afterEach, vi, describe } from "vitest";
-import { render, cleanup, fireEvent, act } from "@testing-library/react";
-
+import type { MouseEventHandler } from "react";
+import { it, expect, vi, describe } from "vitest";
+import { render } from "vitest-browser-react"
 import { Router, Link } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 
-afterEach(cleanup);
-
 describe("<Link />", () => {
-  it("renders a link with proper attributes", () => {
+  it("renders a link with proper attributes", async () => {
     const { getByText } = render(
       <Link href="/about" className="link--active">
         Click Me
@@ -17,13 +14,13 @@ describe("<Link />", () => {
 
     const element = getByText("Click Me");
 
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveAttribute("href", "/about");
-    expect(element).toHaveClass("link--active");
+    await expect.element(element).toBeInTheDocument();
+    await expect.element(element).toHaveAttribute("href", "/about");
+    await expect.element(element).toHaveClass("link--active");
   });
 
-  it("passes ref to <a />", () => {
-    const refCallback = vi.fn<[HTMLAnchorElement], void>();
+  it("passes ref to <a />", async () => {
+    const refCallback = vi.fn();
     const { getByText } = render(
       <Link href="/" ref={refCallback}>
         Testing
@@ -32,44 +29,44 @@ describe("<Link />", () => {
 
     const element = getByText("Testing");
 
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveAttribute("href", "/");
+    await expect.element(element).toBeInTheDocument();
+    await expect.element(element).toHaveAttribute("href", "/");
 
     expect(refCallback).toBeCalledTimes(1);
-    expect(refCallback).toBeCalledWith(element);
+    expect(refCallback).toBeCalledWith(element.element());
   });
 
-  it("still creates a plain link when nothing is passed", () => {
+  it("still creates a plain link when nothing is passed", async () => {
     const { getByTestId } = render(<Link href="/about" data-testid="link" />);
 
     const element = getByTestId("link");
 
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveAttribute("href", "/about");
-    expect(element).toBeEmptyDOMElement();
+    await expect.element(element).toBeInTheDocument();
+    await expect.element(element).toHaveAttribute("href", "/about");
+    await expect.element(element).toBeEmptyDOMElement();
   });
 
-  it("supports `to` prop as an alias to `href`", () => {
+  it("supports `to` prop as an alias to `href`", async () => {
     const { getByText } = render(<Link to="/about">Hello</Link>);
     const element = getByText("Hello");
 
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveAttribute("href", "/about");
+    await expect.element(element).toBeInTheDocument();
+    await expect.element(element).toHaveAttribute("href", "/about");
   });
 
-  it("performs a navigation when the link is clicked", () => {
+  it("performs a navigation when the link is clicked", async () => {
     const { getByTestId } = render(
       <Link href="/goo-baz" data-testid="link">
         link
       </Link>
     );
 
-    fireEvent.click(getByTestId("link"));
+    await getByTestId("link").click()
 
     expect(location.pathname).toBe("/goo-baz");
   });
 
-  it("supports replace navigation", () => {
+  it("supports replace navigation", async () => {
     const { getByTestId } = render(
       <Link href="/goo-baz" replace data-testid="link">
         link
@@ -78,7 +75,7 @@ describe("<Link />", () => {
 
     const histBefore = history.length;
 
-    fireEvent.click(getByTestId("link"));
+    await getByTestId("link").click()
 
     expect(location.pathname).toBe("/goo-baz");
     expect(history.length).toBe(histBefore);
@@ -97,15 +94,13 @@ describe("<Link />", () => {
       ctrlKey: true,
     });
 
-    // js-dom doesn't implement browser navigation (e.g. changing location
-    // when a link is clicked) so we need just ingore it to avoid warnings
     clickEvt.preventDefault();
 
-    fireEvent(getByTestId("link"), clickEvt);
+    getByTestId("link").element().dispatchEvent(clickEvt)
     expect(location.pathname).not.toBe("/users");
   });
 
-  it("ignores the navigation when event is cancelled", () => {
+  it("ignores the navigation when event is cancelled", async () => {
     const clickHandler: MouseEventHandler = (e) => {
       e.preventDefault();
     };
@@ -116,22 +111,22 @@ describe("<Link />", () => {
       </Link>
     );
 
-    fireEvent.click(getByTestId("link"));
+    await getByTestId("link").click()
     expect(location.pathname).not.toBe("/users");
   });
 
-  it("accepts an `onClick` prop, fired before the navigation", () => {
+  it("accepts an `onClick` prop, fired before the navigation", async () => {
     const clickHandler = vi.fn();
 
     const { getByTestId } = render(
-      <Link href="/" onClick={clickHandler} data-testid="link" />
+      <Link href="/" onClick={clickHandler} data-testid="link">click</Link>
     );
 
-    fireEvent.click(getByTestId("link"));
+    await getByTestId("link").click()
     expect(clickHandler).toHaveBeenCalledTimes(1);
   });
 
-  it("renders `href` with basepath", () => {
+  it("renders `href` with basepath", async () => {
     const { getByTestId } = render(
       <Router base="/app">
         <Link href="/dashboard" data-testid="link" />
@@ -139,10 +134,10 @@ describe("<Link />", () => {
     );
 
     const link = getByTestId("link");
-    expect(link.getAttribute("href")).toBe("/app/dashboard");
+    await expect.element(link).toHaveAttribute("href", "/app/dashboard");
   });
 
-  it("renders `href` with absolute links", () => {
+  it("renders `href` with absolute links", async () => {
     const { getByTestId } = render(
       <Router base="/app">
         <Link href="~/home" data-testid="link" />
@@ -150,10 +145,10 @@ describe("<Link />", () => {
     );
 
     const element = getByTestId("link");
-    expect(element).toHaveAttribute("href", "/home");
+    await expect.element(element).toHaveAttribute("href", "/home");
   });
 
-  it("supports history state", () => {
+  it("supports history state", async () => {
     const testState = { hello: "world" };
     const { getByTestId } = render(
       <Link href="/goo-baz" state={testState} data-testid="link">
@@ -161,12 +156,12 @@ describe("<Link />", () => {
       </Link>
     );
 
-    fireEvent.click(getByTestId("link"));
+    await getByTestId("link").click()
     expect(location.pathname).toBe("/goo-baz");
     expect(history.state).toStrictEqual(testState);
   });
 
-  it("can be configured to use custom href formatting", () => {
+  it("can be configured to use custom href formatting", async () => {
     const formatter = (href: string) => `#${href}`;
 
     const { getByTestId } = render(
@@ -182,14 +177,14 @@ describe("<Link />", () => {
       </>
     );
 
-    expect(getByTestId("root")).toHaveAttribute("href", "#/");
-    expect(getByTestId("home")).toHaveAttribute("href", "#/home");
-    expect(getByTestId("absolute")).toHaveAttribute("href", "#/home");
+    await expect.element(getByTestId("root")).toHaveAttribute("href", "#/");
+    await expect.element(getByTestId("home")).toHaveAttribute("href", "#/home");
+    await expect.element(getByTestId("absolute")).toHaveAttribute("href", "#/home");
   });
 });
 
 describe("active links", () => {
-  it("proxies `className` when it is a string", () => {
+  it("proxies `className` when it is a string", async () => {
     const { getByText } = render(
       <Link href="/" className="link--active warning">
         Click Me
@@ -197,10 +192,10 @@ describe("active links", () => {
     );
 
     const element = getByText("Click Me");
-    expect(element).toHaveAttribute("class", "link--active warning");
+    await expect.element(element).toHaveAttribute("class", "link--active warning");
   });
 
-  it("calls the `className` function with active link flag", () => {
+  it("calls the `className` function with active link flag", async () => {
     const { navigate, hook } = memoryLocation({ path: "/" });
 
     const { getByText } = render(
@@ -217,17 +212,17 @@ describe("active links", () => {
     );
 
     const element = getByText("Click Me");
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveClass("active");
-    expect(element).toHaveClass("link");
+    await expect.element(element).toBeInTheDocument();
+    await expect.element(element).toHaveClass("active");
+    await expect.element(element).toHaveClass("link");
 
-    act(() => navigate("/about"));
+    navigate("/about")
 
-    expect(element).not.toHaveClass("active");
-    expect(element).toHaveClass("link");
+    await expect.element(element).not.toHaveClass("active");
+    await expect.element(element).toHaveClass("link");
   });
 
-  it("correctly highlights active links when using custom href formatting", () => {
+  it("correctly highlights active links when using custom href formatting", async () => {
     const formatter = (href: string) => `#${href}`;
     const { navigate, hook } = memoryLocation({ path: "/" });
 
@@ -245,19 +240,19 @@ describe("active links", () => {
     );
 
     const element = getByText("Click Me");
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveClass("active");
-    expect(element).toHaveClass("link");
+    await expect.element(element).toBeInTheDocument();
+    await expect.element(element).toHaveClass("active");
+    await expect.element(element).toHaveClass("link");
 
-    act(() => navigate("/about"));
+    navigate("/about")
 
-    expect(element).not.toHaveClass("active");
-    expect(element).toHaveClass("link");
+    await expect.element(element).not.toHaveClass("active");
+    await expect.element(element).toHaveClass("link");
   });
 });
 
 describe("<Link /> with `asChild` prop", () => {
-  it("when `asChild` is not specified, wraps the children in an <a />", () => {
+  it("when `asChild` is not specified, wraps the children in an <a />", async () => {
     const { getByText } = render(
       <Link href="/about">
         <div className="link--wannabe">Click Me</div>
@@ -265,17 +260,18 @@ describe("<Link /> with `asChild` prop", () => {
     );
 
     const link = getByText("Click Me");
+    const linkElement = link.element()
 
-    expect(link.tagName).toBe("DIV");
-    expect(link).not.toHaveAttribute("href");
-    expect(link).toHaveClass("link--wannabe");
-    expect(link).toHaveTextContent("Click Me");
+    expect(linkElement.tagName).toBe("DIV");
+    await expect.element(link).not.toHaveAttribute("href");
+    await expect.element(link).toHaveClass("link--wannabe");
+    await expect.element(link).toHaveTextContent("Click Me");
 
-    expect(link.parentElement?.tagName).toBe("A");
-    expect(link.parentElement).toHaveAttribute("href", "/about");
+    expect(linkElement.parentElement?.tagName).toBe("A");
+    expect(linkElement.parentElement).toHaveAttribute("href", "/about");
   });
 
-  it("when invalid element is provided, wraps the children in an <a />", () => {
+  it("when invalid element is provided, wraps the children in an <a />", async () => {
     const { getByText } = render(
       /* @ts-expect-error */
       <Link href="/about" asChild>
@@ -285,9 +281,11 @@ describe("<Link /> with `asChild` prop", () => {
 
     const link = getByText("Click Me");
 
-    expect(link.tagName).toBe("A");
-    expect(link).toHaveAttribute("href", "/about");
-    expect(link).toHaveTextContent("Click Me");
+    await expect.element(link).toBeInTheDocument()
+
+    expect(link.element().tagName).toBe("A");
+    await expect.element(link).toHaveAttribute("href", "/about");
+    await expect.element(link).toHaveTextContent("Click Me");
   });
 
   it("when more than one element is provided, wraps the children in an <a />", async () => {
@@ -300,15 +298,15 @@ describe("<Link /> with `asChild` prop", () => {
       </Link>
     );
 
-    const span = getByText("1");
+    const spanElement = getByText("1").element()
 
-    expect(span.parentElement?.tagName).toBe("A");
+    expect(spanElement.parentElement?.tagName).toBe("A");
 
-    expect(span.parentElement).toHaveAttribute("href", "/about");
-    expect(span.parentElement).toHaveTextContent("123");
+    expect(spanElement.parentElement).toHaveAttribute("href", "/about");
+    expect(spanElement.parentElement).toHaveTextContent("123");
   });
 
-  it("injects href prop when rendered with `asChild`", () => {
+  it("injects href prop when rendered with `asChild`", async () => {
     const { getByText } = render(
       <Link href="/about" asChild>
         <div className="link--wannabe">Click Me</div>
@@ -317,13 +315,13 @@ describe("<Link /> with `asChild` prop", () => {
 
     const link = getByText("Click Me");
 
-    expect(link.tagName).toBe("DIV");
-    expect(link).toHaveClass("link--wannabe");
-    expect(link).toHaveAttribute("href", "/about");
-    expect(link).toHaveTextContent("Click Me");
+    expect(link.element().tagName).toBe("DIV");
+    await expect.element(link).toHaveClass("link--wannabe");
+    await expect.element(link).toHaveAttribute("href", "/about");
+    await expect.element(link).toHaveTextContent("Click Me");
   });
 
-  it("missing href or to won't crash", () => {
+  it("missing href or to won't crash", async () => {
     const { getByText } = render(
       /* @ts-expect-error */
       <Link>Click Me</Link>
@@ -331,8 +329,8 @@ describe("<Link /> with `asChild` prop", () => {
 
     const link = getByText("Click Me");
 
-    expect(link.tagName).toBe("A");
-    expect(link).toHaveAttribute("href", undefined);
-    expect(link).toHaveTextContent("Click Me");
+    expect(link.element().tagName).toBe("A");
+    await expect.element(link).toHaveAttribute("href", undefined);
+    await expect.element(link).toHaveTextContent("Click Me");
   });
 });

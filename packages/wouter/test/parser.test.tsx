@@ -1,8 +1,7 @@
+import type { PropsWithChildren } from "react"
 import { it, expect } from "vitest";
-
+import { renderHook } from "vitest-browser-react"
 import { pathToRegexp, Key } from "path-to-regexp";
-import { renderHook } from "@testing-library/react";
-
 import { Router, useRouter, useRoute, Parser } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 
@@ -16,7 +15,7 @@ const pathToRegexpParser: Parser = (route: string) => {
 
 it("overrides the `parser` prop on the current router", () => {
   const { result } = renderHook(() => useRouter(), {
-    wrapper: ({ children }) => (
+    wrapper: ({ children }: PropsWithChildren) => (
       <Router parser={pathToRegexpParser}>{children}</Router>
     ),
   });
@@ -29,7 +28,7 @@ it("allows to change the behaviour of route matching", () => {
   const { result } = renderHook(
     () => useRoute("/(home|dashboard)/:pages?/users/:rest*"),
     {
-      wrapper: ({ children }) => (
+      wrapper: ({ children }: PropsWithChildren) => (
         <Router
           hook={memoryLocation({ path: "/home/users/10/bio" }).hook}
           parser={pathToRegexpParser}

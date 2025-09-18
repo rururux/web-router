@@ -1,7 +1,6 @@
-import { it, expect } from "vitest";
-import { render } from "@testing-library/react";
 import { useState } from "react";
-
+import { it, expect } from "vitest";
+import { render } from "vitest-browser-react";
 import { Redirect, Router } from "wouter";
 
 export const customHookWithReturn =

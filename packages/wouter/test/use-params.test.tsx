@@ -1,7 +1,7 @@
-import { act, renderHook } from "@testing-library/react";
+import type { PropsWithChildren } from "react"
 import { it, expect } from "vitest";
+import { renderHook } from "vitest-browser-react";
 import { useParams, Router, Route, Switch } from "wouter";
-
 import { memoryLocation } from "wouter/memory-location";
 
 it("returns empty object when used outside of <Route />", () => {
@@ -11,7 +11,7 @@ it("returns empty object when used outside of <Route />", () => {
 
 it("contains a * parameter when used inside an empty <Route />", () => {
   const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={memoryLocation({ path: "/app-2/goods/tees" }).hook}>
         <Route>{props.children}</Route>
       </Router>
@@ -26,7 +26,7 @@ it("contains a * parameter when used inside an empty <Route />", () => {
 
 it("returns an empty object when there are no params", () => {
   const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => <Route path="/">{props.children}</Route>,
+    wrapper: (props: PropsWithChildren) => <Route path="/">{props.children}</Route>,
   });
 
   expect(result.current).toEqual({});
@@ -34,7 +34,7 @@ it("returns an empty object when there are no params", () => {
 
 it("contains parameters from the closest parent <Route />", () => {
   const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={memoryLocation({ path: "/app/users/1/maria" }).hook}>
         <Route path="/app/:foo/*">
           <Route path="/app/users/:id/:name">{props.children}</Route>
@@ -53,7 +53,7 @@ it("contains parameters from the closest parent <Route />", () => {
 
 it("inherits parameters from parent nested routes", () => {
   const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router
         hook={
           memoryLocation({ path: "/dash/users/10/alex/bio/john/summary-1" })
@@ -83,8 +83,8 @@ it("inherits parameters from parent nested routes", () => {
 it("rerenders with parameters change", () => {
   const { hook, navigate } = memoryLocation({ path: "/" });
 
-  const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+  const { result, act } = renderHook(() => useParams(), {
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={hook}>
         <Route path="/:a/:b">{props.children}</Route>
       </Router>
@@ -117,7 +117,7 @@ it("extracts parameters of the nested route", () => {
   });
 
   const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={hook}>
         <Route path="/:version/:chain?" nest>
           {props.children}
@@ -138,7 +138,7 @@ it("keeps the object ref the same if params haven't changed", () => {
   const { hook } = memoryLocation({ path: "/foo/bar" });
 
   const { result, rerender } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={hook}>
         <Route path="/:a/:b/*?">{props.children}</Route>
       </Router>
@@ -153,8 +153,8 @@ it("keeps the object ref the same if params haven't changed", () => {
 it("works when the route becomes matching", () => {
   const { hook, navigate } = memoryLocation({ path: "/" });
 
-  const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+  const { result, act } = renderHook(() => useParams(), {
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={hook}>
         <Route path="/:id">{props.children}</Route>
       </Router>
@@ -168,8 +168,8 @@ it("works when the route becomes matching", () => {
 it("makes the params an empty object, when there are no path params", () => {
   const { hook, navigate } = memoryLocation({ path: "/" });
 
-  const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+  const { result, act } = renderHook(() => useParams(), {
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={hook}>
         <Switch>
           <Route path="/posts">{props.children}</Route>
@@ -191,8 +191,8 @@ it("removes route parameters when no longer present in the path", () => {
   });
 
   // Render useParams within two routes: one with /page/:page, one without
-  const { result } = renderHook(() => useParams(), {
-    wrapper: (props) => (
+  const { result, act } = renderHook(() => useParams(), {
+    wrapper: (props: PropsWithChildren) => (
       <Router hook={hook}>
         <Switch>
           <Route path="/products/categories/:category">{props.children}</Route>

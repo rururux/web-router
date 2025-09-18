@@ -1,6 +1,6 @@
+import type { PropsWithChildren } from "react"
 import { it, expect, describe } from "vitest";
-import { act, render, renderHook } from "@testing-library/react";
-
+import { render, renderHook } from "vitest-browser-react"
 import { Route, Router, Switch, useRouter } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 
@@ -10,7 +10,7 @@ describe("when `nest` prop is given", () => {
     expect(container.innerHTML).toBe("matched!");
   });
 
-  it("matches the pattern loosely", () => {
+  it("matches the pattern loosely", async () => {
     const { hook, navigate } = memoryLocation();
 
     const { container } = render(
@@ -23,14 +23,14 @@ describe("when `nest` prop is given", () => {
 
     expect(container.innerHTML).toBe("");
 
-    act(() => navigate("/posts/all")); // full match
-    expect(container.innerHTML).toBe("matched!");
+    navigate("/posts/all"); // full match
+    await expect.poll(() => container.innerHTML).toBe("matched!");
 
-    act(() => navigate("/users"));
-    expect(container.innerHTML).toBe("");
+    navigate("/users");
+    await expect.poll(() => container.innerHTML).toBe("");
 
-    act(() => navigate("/posts/10-react-tricks/table-of-contents"));
-    expect(container.innerHTML).toBe("matched!");
+    navigate("/posts/10-react-tricks/table-of-contents");
+    await expect.poll(() => container.innerHTML).toBe("matched!");
   });
 
   it("can be used inside a Switch", () => {
@@ -55,7 +55,7 @@ describe("when `nest` prop is given", () => {
 
   it("sets the base to the matched segment", () => {
     const { result } = renderHook(() => useRouter().base, {
-      wrapper: (props) => (
+      wrapper: (props: PropsWithChildren) => (
         <Router
           hook={memoryLocation({ path: "/2012/04/posts", static: true }).hook}
         >
@@ -116,7 +116,7 @@ describe("when `nest` prop is given", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("works with one optional segment", () => {
+  it("works with one optional segment", async () => {
     const { hook, navigate } = memoryLocation({
       path: "/",
     });
@@ -134,10 +134,10 @@ describe("when `nest` prop is given", () => {
     const { container } = render(<App />);
     expect(container.innerHTML).toBe("default");
 
-    act(() => navigate("/v1"));
-    expect(container.innerHTML).toBe("v1");
+    navigate("/v1");
+    await expect.poll(() => container.innerHTML).toBe("v1");
 
-    act(() => navigate("/v2/dashboard"));
-    expect(container.innerHTML).toBe("v2");
+    navigate("/v2/dashboard");
+    await expect.poll(() => container.innerHTML).toBe("v2");
   });
 });

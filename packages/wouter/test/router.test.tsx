@@ -1,6 +1,6 @@
-import { memo, ReactElement, cloneElement, ComponentProps } from "react";
-import { renderHook, render } from "@testing-library/react";
+import { type PropsWithChildren, type ComponentProps, memo } from "react";
 import { it, expect, describe } from "vitest";
+import { renderHook, render } from "vitest-browser-react";
 import {
   Router,
   DefaultParams,
@@ -24,7 +24,7 @@ it("creates a router object only once", () => {
 
 it("does not create new router when <Router /> rerenders", () => {
   const { result, rerender } = renderHook(() => useRouter(), {
-    wrapper: (props) => <Router>{props.children}</Router>,
+    wrapper: (props: PropsWithChildren) => <Router>{props.children}</Router>,
   });
   const router = result.current;
 
@@ -37,7 +37,7 @@ it("alters the current router with `parser` and `hook` options", () => {
   const hook: BaseLocationHook = () => ["/foo", () => {}];
 
   const { result } = renderHook(() => useRouter(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router parser={newParser} hook={hook}>
         {props.children}
       </Router>
@@ -52,7 +52,7 @@ it("alters the current router with `parser` and `hook` options", () => {
 
 it("accepts `ssrPath` and `ssrSearch` params", () => {
   const { result } = renderHook(() => useRouter(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router ssrPath="/users" ssrSearch="a=b&c=d">
         {props.children}
       </Router>
@@ -68,7 +68,7 @@ it("can extract `ssrSearch` from `ssrPath` after the '?' symbol", () => {
   let ssrSearch: string | undefined = undefined;
 
   const { result, rerender } = renderHook(() => useRouter(), {
-    wrapper: (props) => (
+    wrapper: (props: PropsWithChildren) => (
       <Router ssrPath={ssrPath} ssrSearch={ssrSearch}>
         {props.children}
       </Router>
@@ -119,14 +119,14 @@ describe("`base` prop", () => {
 
   it("can be customized via the `base` prop", () => {
     const { result } = renderHook(() => useRouter(), {
-      wrapper: (props) => <Router base="/foo">{props.children}</Router>,
+      wrapper: (props: PropsWithChildren) => <Router base="/foo">{props.children}</Router>,
     });
     expect(result.current.base).toBe("/foo");
   });
 
   it("appends provided path to the parent router's base", () => {
     const { result } = renderHook(() => useRouter(), {
-      wrapper: (props) => (
+      wrapper: (props: PropsWithChildren) => (
         <Router base="/baz">
           <Router base="/foo">
             <Router base="/bar">{props.children}</Router>
@@ -146,7 +146,7 @@ describe("`hook` prop", () => {
     const {
       result: { current: router },
     } = renderHook(() => useRouter(), {
-      wrapper: (props) => (
+      wrapper: (props: PropsWithChildren) => (
         <Router base="/app" parser={newParser}>
           <Router hook={customHook} base="/bar">
             {props.children}
@@ -168,7 +168,7 @@ describe("`hrefs` prop", () => {
     const {
       result: { current: router },
     } = renderHook(() => useRouter(), {
-      wrapper: (props) => <Router hrefs={formatter}>{props.children}</Router>,
+      wrapper: (props: PropsWithChildren) => <Router hrefs={formatter}>{props.children}</Router>,
     });
 
     expect(router.hrefs).toBe(formatter);
@@ -185,7 +185,7 @@ describe("`hrefs` prop", () => {
     let hrefsRouterOption: ((href: string) => string) | undefined;
 
     const { rerender, result } = renderHook(() => useRouter(), {
-      wrapper: (props) => (
+      wrapper: (props: PropsWithChildren) => (
         <Router hook={hook} hrefs={hrefsRouterOption}>
           {props.children}
         </Router>

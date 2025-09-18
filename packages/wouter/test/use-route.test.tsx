@@ -1,6 +1,7 @@
-import { renderHook, act } from "@testing-library/react";
-import { useRoute, Match, Router, RegexRouteParams } from "wouter";
+import type { PropsWithChildren } from "react"
 import { it, expect } from "vitest";
+import { renderHook } from "vitest-browser-react";
+import { useRoute, Match, Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 
 it("is case insensitive", () => {
@@ -161,10 +162,11 @@ it("supports regex patterns", () => {
 });
 
 it("reacts to pattern updates", () => {
-  const { result, rerender } = renderHook(
-    ({ pattern }: { pattern: string }) => useRoute(pattern),
+  const initialProps = { pattern: "/" }
+  const { result, rerender } = renderHook<{ pattern: string }, unknown[]>(
+    (props) => useRoute(props?.pattern ?? initialProps.pattern),
     {
-      wrapper: (props) => (
+      wrapper: (props: Required<PropsWithChildren>) => (
         <Router
           hook={
             memoryLocation({ path: "/blog/products/40/read-all", static: true })
@@ -173,7 +175,7 @@ it("reacts to pattern updates", () => {
           {...props}
         />
       ),
-      initialProps: { pattern: "/" },
+      initialProps,
     }
   );
 
@@ -208,8 +210,8 @@ it("reacts to pattern updates", () => {
 it("reacts to location updates", () => {
   const { hook, navigate } = memoryLocation();
 
-  const { result } = renderHook(() => useRoute("/cities/:city?"), {
-    wrapper: (props) => <Router hook={hook} {...props} />,
+  const { result, act } = renderHook(() => useRoute("/cities/:city?"), {
+    wrapper: (props: Required<PropsWithChildren>) => <Router hook={hook} {...props} />,
   });
 
   expect(result.current).toStrictEqual([false, null]);
@@ -240,7 +242,7 @@ const assertRoute = (
   rhs: false | Match | Record<string, string | undefined>
 ) => {
   const { result } = renderHook(() => useRoute(pattern), {
-    wrapper: (props) => (
+    wrapper: (props: Required<PropsWithChildren>) => (
       <Router
         hook={memoryLocation({ path: location, static: true }).hook}
         {...props}

@@ -1,12 +1,8 @@
-import { it, expect, afterEach } from "vitest";
-import { render, act, cleanup } from "@testing-library/react";
-
+import type { ReactElement } from "react";
+import { it, expect } from "vitest";
+import { render } from "vitest-browser-react";
 import { Router, Route } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
-import { ReactElement } from "react";
-
-// Clean up after each test to avoid DOM pollution
-afterEach(cleanup);
 
 const testRouteRender = (initialPath: string, jsx: ReactElement) => {
   return render(
@@ -86,7 +82,7 @@ it("supports `component` prop similar to React-Router", () => {
   expect(heading).toHaveTextContent("All users");
 });
 
-it("supports `base` routers with relative path", () => {
+it("supports `base` routers with relative path", async () => {
   const { container, unmount } = render(
     <Router base="/app">
       <Route path="/nested">
@@ -98,10 +94,10 @@ it("supports `base` routers with relative path", () => {
     </Router>
   );
 
-  act(() => history.replaceState(null, "", "/app/nested"));
+  history.replaceState(null, "", "/app/nested");
 
-  expect(container.children).toHaveLength(1);
-  expect(container.firstChild).toHaveProperty("tagName", "H1");
+  await expect.poll(() => container.children).toHaveLength(1);
+  await expect.poll(() => container.firstChild).toHaveProperty("tagName", "H1");
 
   unmount();
 });
