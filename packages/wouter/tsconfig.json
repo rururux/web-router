@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "module": "es2020",
     "jsx": "react-jsx",
-    "strict": true
+    "strict": true,
+    "types": [ "dom-navigation" ]
   }
 }

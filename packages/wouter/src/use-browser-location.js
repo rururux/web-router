@@ -1,27 +1,16 @@
 import { useSyncExternalStore } from "./react-deps.js";
 
-/**
- * History API docs @see https://developer.mozilla.org/en-US/docs/Web/API/History
- */
-const eventPopstate = "popstate";
-const eventPushState = "pushState";
-const eventReplaceState = "replaceState";
-const eventHashchange = "hashchange";
-const events = [
-  eventPopstate,
-  eventPushState,
-  eventReplaceState,
-  eventHashchange,
-];
-
 const subscribeToLocationUpdates = (callback) => {
-  for (const event of events) {
-    addEventListener(event, callback);
-  }
+  const abortController = new AbortController()
+
+  window.navigation.addEventListener("navigate", e => {
+    if (e.canIntercept !== true) return
+
+    e.intercept({ handler: callback })
+  }, { signal: abortController.signal });
+
   return () => {
-    for (const event of events) {
-      removeEventListener(event, callback);
-    }
+    abortController.abort()
   };
 };
 
@@ -45,37 +34,12 @@ const currentHistoryState = () => history.state;
 export const useHistoryState = () =>
   useLocationProperty(currentHistoryState, () => null);
 
+// do not change this to Navigation API's `navigate()`.
+// Executing `navigate()` without user interaction is restricted,
+// so it cannot be simply replaced.
 export const navigate = (to, { replace = false, state = null } = {}) =>
-  history[replace ? eventReplaceState : eventPushState](state, "", to);
+  history[replace ? "replaceState" : "pushState"](state, "", to);
 
 // the 2nd argument of the `useBrowserLocation` return value is a function
 // that allows to perform a navigation.
 export const useBrowserLocation = (opts = {}) => [usePathname(opts), navigate];
-
-const patchKey = Symbol.for("wouter_v3");
-
-// While History API does have `popstate` event, the only
-// proper way to listen to changes via `push/replaceState`
-// is to monkey-patch these methods.
-//
-// See https://stackoverflow.com/a/4585031
-if (typeof history !== "undefined" && typeof window[patchKey] === "undefined") {
-  for (const type of [eventPushState, eventReplaceState]) {
-    const original = history[type];
-    // TODO: we should be using unstable_batchedUpdates to avoid multiple re-renders,
-    // however that will require an additional peer dependency on react-dom.
-    // See: https://github.com/reactwg/react-18/discussions/86#discussioncomment-1567149
-    history[type] = function () {
-      const result = original.apply(this, arguments);
-      const event = new Event(type);
-      event.arguments = arguments;
-
-      dispatchEvent(event);
-      return result;
-    };
-  }
-
-  // patch history object only once
-  // See: https://github.com/molefrog/wouter/issues/167
-  Object.defineProperty(window, patchKey, { value: true });
-}

@@ -257,7 +257,7 @@ it("uses string URLs as hashchange event payload", () => {
 
   const relativeOldPath = "/foo";
   const relativeNewPath = "/foo/bar/#hash";
-  const baseURL = "http://localhost:63315/#";
+  const baseURL = location.origin + "/#";
 
   navigate(relativeOldPath);
 
