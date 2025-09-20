@@ -43,7 +43,7 @@ it("ignores the trailing slash", () => {
 });
 
 it("supports trailing wildcards", () => {
-  assertRoute("/app/*", "/app/", { 0: "", "*": "" });
+  assertRoute("/app/*", "/app/", { 0: undefined, "*": undefined });
   assertRoute("/app/*", "/app/dashboard/intro", {
     0: "dashboard/intro",
     "*": "dashboard/intro",

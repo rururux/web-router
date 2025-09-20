@@ -1,5 +1,3 @@
-import { parse as parsePattern } from "regexparam";
-
 import {
   useBrowserLocation,
   useSearch as useBrowserSearch,
@@ -19,6 +17,7 @@ import {
   useMemo,
 } from "./react-deps.js";
 import { absolutePath, relativePath, sanitizeSearch } from "./paths.js";
+import { urlPatternParser } from "./urlPatternParser.js"
 
 /*
  * Router and router context. Router is a lightweight object that represents the current
@@ -31,7 +30,7 @@ import { absolutePath, relativePath, sanitizeSearch } from "./paths.js";
 const defaultRouter = {
   hook: useBrowserLocation,
   searchHook: useBrowserSearch,
-  parser: parsePattern,
+  parser: urlPatternParser,
   base: "",
   // this option is used to override the current location during SSR
   ssrPath: undefined,
@@ -87,7 +86,7 @@ export const matchRoute = (parser, route, path, loose) => {
   const { pattern, keys } =
     route instanceof RegExp
       ? { keys: false, pattern: route }
-      : parser(route || "*", loose);
+      : parser(route || "/*", loose);
 
   // array destructuring loses keys, so this is done in two steps
   const result = pattern.exec(path) || [];

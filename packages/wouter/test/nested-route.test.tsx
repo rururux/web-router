@@ -5,9 +5,9 @@ import { Route, Router, Switch, useRouter } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 
 describe("when `nest` prop is given", () => {
-  it("renders by default", () => {
+  it("renders by default", async () => {
     const { container } = render(<Route nest>matched!</Route>);
-    expect(container.innerHTML).toBe("matched!");
+    await expect.element(container).toHaveTextContent("matched!");
   });
 
   it("matches the pattern loosely", async () => {
@@ -24,16 +24,16 @@ describe("when `nest` prop is given", () => {
     expect(container.innerHTML).toBe("");
 
     navigate("/posts/all"); // full match
-    await expect.poll(() => container.innerHTML).toBe("matched!");
+    await expect.element(container).toHaveTextContent("matched!");
 
     navigate("/users");
-    await expect.poll(() => container.innerHTML).toBe("");
+    await expect.element(container).toHaveTextContent("");
 
     navigate("/posts/10-react-tricks/table-of-contents");
-    await expect.poll(() => container.innerHTML).toBe("matched!");
+    await expect.element(container).toHaveTextContent("matched!");
   });
 
-  it("can be used inside a Switch", () => {
+  it("can be used inside a Switch", async () => {
     const { container } = render(
       <Router
         hook={
@@ -50,7 +50,7 @@ describe("when `nest` prop is given", () => {
       </Router>
     );
 
-    expect(container.innerHTML).toBe("nested");
+    await expect.element(container).toHaveTextContent("nested");
   });
 
   it("sets the base to the matched segment", () => {
@@ -69,7 +69,7 @@ describe("when `nest` prop is given", () => {
     expect(result.current).toBe("/2012/04");
   });
 
-  it("can be nested in another nested `Route` or `Router`", () => {
+  it("can be nested in another nested `Route` or `Router`", async () => {
     const { container } = render(
       <Router
         base="/app"
@@ -90,10 +90,10 @@ describe("when `nest` prop is given", () => {
       </Router>
     );
 
-    expect(container.innerHTML).toBe("All settings");
+    await expect.element(container).toHaveTextContent("All settings");
   });
 
-  it("reacts to `nest` updates", () => {
+  it("reacts to `nest` updates", async () => {
     const { hook } = memoryLocation({
       path: "/app/apple/products",
       static: true,
@@ -110,10 +110,10 @@ describe("when `nest` prop is given", () => {
     };
 
     const { container, rerender } = render(<App nested={true} />);
-    expect(container.innerHTML).toBe("matched!");
+    await expect.element(container).toHaveTextContent("matched!");
 
     rerender(<App nested={false} />);
-    expect(container.innerHTML).toBe("");
+    await expect.element(container).toHaveTextContent("");
   });
 
   it("works with one optional segment", async () => {
@@ -124,7 +124,7 @@ describe("when `nest` prop is given", () => {
     const App = () => {
       return (
         <Router hook={hook}>
-          <Route path="/:version?" nest>
+          <Route path="/{:version}?" nest>
             {({ version }) => version ?? "default"}
           </Route>
         </Router>
@@ -132,12 +132,12 @@ describe("when `nest` prop is given", () => {
     };
 
     const { container } = render(<App />);
-    expect(container.innerHTML).toBe("default");
+    await expect.element(container).toHaveTextContent("default");
 
     navigate("/v1");
-    await expect.poll(() => container.innerHTML).toBe("v1");
+    await expect.element(container).toHaveTextContent("v1");
 
     navigate("/v2/dashboard");
-    await expect.poll(() => container.innerHTML).toBe("v2");
+    await expect.element(container).toHaveTextContent("v2");
   });
 });
