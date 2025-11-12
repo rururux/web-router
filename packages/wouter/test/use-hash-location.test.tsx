@@ -101,7 +101,7 @@ it("supports `state` option when navigating", () => {
   const [, navigate] = result.current;
 
   navigate("/app/users", { state: { hello: "world" } });
-  expect(history.state).toStrictEqual({ hello: "world" });
+  expect(window.navigation.currentEntry?.getState()).toStrictEqual({ hello: "world" });
 });
 
 it("never changes reference to `navigate` between rerenders", () => {
@@ -231,12 +231,13 @@ it("dispatches hashchange event when options.replace is true", () => {
   const [, navigate] = result.current;
 
   const hashChangeFn = vi.fn();
-  addEventListener("hashchange", hashChangeFn);
+
+  window.navigation.addEventListener("navigate", e => {
+    if (e.hashChange) hashChangeFn()
+  }, { once: true })
 
   navigate("/foo/bar", { replace: true });
   expect(hashChangeFn).toBeCalled();
-
-  removeEventListener("hashchange", hashChangeFn);
 });
 
 it("detects history change when navigate with options.replace is called", async () => {
@@ -258,19 +259,21 @@ it("uses string URLs as hashchange event payload", () => {
   const relativeOldPath = "/foo";
   const relativeNewPath = "/foo/bar/#hash";
   const baseURL = location.origin + "/#";
+  let oldURL = ""
+  let newURL = ""
 
   navigate(relativeOldPath);
 
-  let changeEvent = new HashChangeEvent("hashchange");
-  const hashChangeFn = (event: HashChangeEvent) => {
-    changeEvent = event;
+  const hashChangeFn = (event: NavigateEvent) => {
+    oldURL = window.navigation.currentEntry?.url ?? ""
+    newURL = event.destination.url
   };
 
-  addEventListener("hashchange", hashChangeFn);
+  window.navigation.addEventListener("navigate", e => {
+    if (e.hashChange) hashChangeFn(e)
+  }, { once: true })
 
   navigate(relativeNewPath);
-  expect(changeEvent?.newURL).toBe(`${baseURL}${relativeNewPath}`);
-  expect(changeEvent?.oldURL).toBe(`${baseURL}${relativeOldPath}`);
-
-  removeEventListener("hashchange", hashChangeFn);
+  expect(newURL).toBe(`${baseURL}${relativeNewPath}`);
+  expect(oldURL).toBe(`${baseURL}${relativeOldPath}`);
 });

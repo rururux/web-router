@@ -7,19 +7,22 @@ export const waitForHashChangeEvent = async (
   throwAfter = 1000
 ) =>
   new Promise<void>((resolve, reject) => {
+    const abortController = new AbortController()
     let timeout: ReturnType<typeof setTimeout>;
 
     const onChange = () => {
       resolve();
       clearTimeout(timeout);
-      window.removeEventListener("hashchange", onChange);
+      abortController.abort()
     };
 
-    window.addEventListener("hashchange", onChange);
+    window.navigation.addEventListener("navigate", e => {
+      if (e.hashChange) onChange()
+    }, { signal: abortController.signal });
     cb();
 
     timeout = setTimeout(() => {
       reject(new Error("Timed out: `hashchange` event did not fire!"));
-      window.removeEventListener("hashchange", onChange);
+      abortController.abort()
     }, throwAfter);
   });

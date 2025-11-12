@@ -158,7 +158,7 @@ describe("<Link />", () => {
 
     await getByTestId("link").click()
     expect(location.pathname).toBe("/goo-baz");
-    expect(history.state).toStrictEqual(testState);
+    expect(window.navigation.currentEntry?.getState()).toStrictEqual(testState);
   });
 
   it("can be configured to use custom href formatting", async () => {

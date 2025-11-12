@@ -48,12 +48,12 @@ it("supports `base` routers with absolute path", () => {
 });
 
 it("supports replace navigation", () => {
-  const histBefore = history.length;
+  const histBefore = window.navigation.entries().length;
 
   render(<Redirect to="/users" replace />);
 
   expect(location.pathname).toBe("/users");
-  expect(history.length).toBe(histBefore);
+  expect(window.navigation.entries().length).toBe(histBefore);
 });
 
 it("supports history state", () => {
@@ -61,7 +61,7 @@ it("supports history state", () => {
   render(<Redirect to="/users" state={testState} />);
 
   expect(location.pathname).toBe("/users");
-  expect(history.state).toStrictEqual(testState);
+  expect(window.navigation.currentEntry?.getState()).toStrictEqual(testState);
 });
 
 it("useLayoutEffect should return nothing", () => {

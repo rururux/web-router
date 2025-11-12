@@ -1,13 +1,10 @@
+import { eventTarget } from "./eventTarget.js"
 import { useSyncExternalStore } from "./react-deps.js";
 
 const subscribeToLocationUpdates = (callback) => {
   const abortController = new AbortController()
 
-  window.navigation.addEventListener("navigate", e => {
-    if (e.canIntercept !== true) return
-
-    e.intercept({ handler: callback })
-  }, { signal: abortController.signal });
+  eventTarget.addEventListener("navigate", callback, { signal: abortController.signal })
 
   return () => {
     abortController.abort()
@@ -30,16 +27,43 @@ export const usePathname = ({ ssrPath } = {}) =>
     ssrPath ? () => ssrPath : currentPathname
   );
 
-const currentHistoryState = () => history.state;
+let lastEntry = undefined
+let historyStateCache = undefined
+const currentHistoryState = () => {
+  const currentEntry = window.navigation.currentEntry
+
+  if (currentEntry != lastEntry) {
+    lastEntry = currentEntry
+    historyStateCache = currentEntry.getState()
+  }
+
+  return historyStateCache
+}
 export const useHistoryState = () =>
   useLocationProperty(currentHistoryState, () => null);
 
-// do not change this to Navigation API's `navigate()`.
-// Executing `navigate()` without user interaction is restricted,
-// so it cannot be simply replaced.
 export const navigate = (to, { replace = false, state = null } = {}) =>
-  history[replace ? "replaceState" : "pushState"](state, "", to);
+  window.navigation.navigate(to, { history: replace ? 'replace' : 'push', state })
 
 // the 2nd argument of the `useBrowserLocation` return value is a function
 // that allows to perform a navigation.
 export const useBrowserLocation = (opts = {}) => [usePathname(opts), navigate];
+
+let isEventListenerAttached = false
+
+if (window !== undefined && !isEventListenerAttached) {
+  isEventListenerAttached = true
+
+  window.navigation.addEventListener("navigate", e => {
+    if (e.canIntercept !== true) return
+
+    e.intercept({
+      handler() {
+        if (e.hashChange) {
+          eventTarget.dispatchEvent(new CustomEvent("hashchange"))
+        }
+        eventTarget.dispatchEvent(new CustomEvent("navigate"))
+      }
+    })
+  })
+}
