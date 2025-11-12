@@ -1,4 +1,3 @@
-import mitt from "mitt";
 import { useSyncExternalStore } from "./react-deps.js";
 
 /**
@@ -20,7 +19,7 @@ export const memoryLocation = ({
 
   let [currentPath, currentSearch = ""] = initialPath.split("?");
   const history = [initialPath];
-  const emitter = mitt();
+  const eventTarget = new EventTarget()
 
   const navigateImplementation = (path, { replace = false } = {}) => {
     if (record) {
@@ -32,14 +31,16 @@ export const memoryLocation = ({
     }
 
     [currentPath, currentSearch = ""] = path.split("?");
-    emitter.emit("navigate", path);
+    eventTarget.dispatchEvent(new CustomEvent("navigate", { detail: path }))
   };
 
   const navigate = !staticLocation ? navigateImplementation : () => null;
 
   const subscribe = (cb) => {
-    emitter.on("navigate", cb);
-    return () => emitter.off("navigate", cb);
+    const abortController = new AbortController()
+
+    eventTarget.addEventListener("navigate", e => cb(e.detail), { signal: abortController.signal })
+    return () => abortController.abort()
   };
 
   const useMemoryLocation = () => [
